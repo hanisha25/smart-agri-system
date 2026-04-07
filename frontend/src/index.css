@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Poppins', sans-serif;
+}
+
+.title-font {
+  font-family: 'Times New Roman', serif;
+}
+.input {
+  @apply p-2 mb-2 w-full rounded border border-gray-300 focus:outline-none;
+}

@@ -1,0 +1,10 @@
+{
+  "reportProblem": "Report Crop Problem",
+  "cropName": "Crop Name",
+  "selectProblem": "Select Problem",
+  "symptomLocation": "Where is the problem?",
+  "spread": "How much spread?",
+  "weather": "Recent Weather",
+  "uploadImage": "Upload Image",
+  "submit": "Submit Report"
+}
