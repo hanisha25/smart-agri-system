@@ -1,0 +1,9 @@
+.DS_Store
+__pycache__/
+*.pyc
+
+backend/.env
+backend/node_modules/
+backend/uploads/
+
+ml-model/model.pkl

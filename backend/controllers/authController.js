@@ -8,15 +8,28 @@ const jwt = require("jsonwebtoken");
 exports.signup = async (req, res) => {
   try {
     const { name, mobile, farmerId, email, password, role } = req.body;
+
+    if (!password || !role || !name?.trim()) {
+      return res.status(400).json({ message: "Name, password, and role are required" });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     let user;
     if (role === "farmer") {
+      if (!farmerId?.trim() || !mobile?.trim()) {
+        return res.status(400).json({ message: "Farmer ID and mobile are required" });
+      }
+
       // Prevent duplicate farmerId
       const existing = await Farmer.findOne({ farmerId });
       if (existing) return res.status(400).json({ message: "Farmer ID already exists" });
       user = new Farmer({ name, mobile, farmerId, password: hashedPassword, role });
       await user.save();
     } else if (role === "researcher") {
+      if (!email?.trim()) {
+        return res.status(400).json({ message: "Researcher email is required" });
+      }
+
       // Prevent duplicate email
       const existing = await Researcher.findOne({ email });
       if (existing) return res.status(400).json({ message: "Researcher email already exists" });
@@ -37,6 +50,11 @@ exports.signup = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { farmerId, email, password } = req.body;
+
+    if (!password || (!farmerId && !email)) {
+      return res.status(400).json({ message: "Credentials are required" });
+    }
+
     let user = null;
     let role = "";
     if (farmerId) {
@@ -45,7 +63,7 @@ exports.login = async (req, res) => {
     }
     if (email && !user) {
       user = await Researcher.findOne({ email });
-      role = "researcher";
+      role = user?.role || "researcher";
     }
     if (!user) {
       return res.status(404).json({ message: "User not found" });

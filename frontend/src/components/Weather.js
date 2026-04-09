@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { apiUrl } from "../api";
 
 function Weather() {
 
@@ -14,7 +15,7 @@ function Weather() {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.get(
-        "http://localhost:5400/api/weather/my-weather",
+        apiUrl("/api/weather/my-weather"),
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -40,33 +41,44 @@ function Weather() {
   };
 
   return(
-    <div>
-
-      <h2 className="text-2xl font-bold mb-6">
-        🌦 Crop Weather Status
-      </h2>
+    <div className="section-shell">
+      <div className="section-hero">
+        <div>
+          <h2 className="section-title">
+            🌦 Crop Weather Status
+          </h2>
+          <p className="section-copy">
+            Review temperature, humidity, rainfall, and quick risk indicators for the fields already saved in your account.
+          </p>
+        </div>
+        <div className="stat-card">
+          <p className="text-sm text-slate-500">Weather cards</p>
+          <p className="mt-3 text-3xl font-bold text-green-900">{weather.length}</p>
+          <p className="mt-2 text-sm text-slate-600">Each card combines local weather conditions with crop-specific guidance.</p>
+        </div>
+      </div>
 
       {loading ? (
-        <div className="text-center text-lg py-10">Loading weather data...</div>
+        <div className="empty-panel">Loading weather data...</div>
       ) : error ? (
-        <div className="text-center text-red-600 py-10">{error}</div>
+        <div className="empty-panel text-red-600">{error}</div>
       ) : weather.length === 0 ? (
-        <div className="text-center text-gray-500 py-10">No weather data found.</div>
+        <div className="empty-panel">No weather data found.</div>
       ) : (
-        <div className="grid grid-cols-2 gap-6">
+        <div className="content-grid">
 
           {weather.map((item,index)=>(
             <motion.div
               key={index}
-              whileHover={{scale:1.05}}
-              className="bg-white/20 backdrop-blur-lg p-6 rounded-2xl shadow-xl"
+              whileHover={{scale:1.02}}
+              className="panel-card p-6"
             >
 
-              <h3 className="text-xl font-bold mb-2">
+              <h3 className="mb-2 text-xl font-bold text-green-900">
                 🌱 {item.crop}
               </h3>
 
-              <p>📍 {item.district}</p>
+              <p className="text-sm text-slate-600">📍 {item.district}</p>
 
               <p>
                 🌡 Temp: {item.temp !== undefined ? `${item.temp}°C` : "--"}
@@ -80,10 +92,10 @@ function Weather() {
                 🌧 Rainfall: {item.rain ?? 0} mm
               </p>
 
-              <p className="mt-3 font-semibold">
+              <p className="mt-4 font-semibold">
                 Risk: {getRisk(item.temp,item.rain)}
               </p>
-              <p className="mt-3 font-semibold">
+              <p className="mt-3 font-semibold text-slate-700">
                 🤖 AI Suggestion: {item.suggestion}
               </p>
             </motion.div>

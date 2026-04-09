@@ -2,8 +2,8 @@ const express = require("express");
 const router = express.Router();
 
 const weatherController = require("../controllers/weatherController");
-const { verifyToken } = require("../middleware/authMiddleware");
+const { requireAuth, requireRole } = require("../middleware/authMiddleware");
 
-router.get("/my-weather", verifyToken, weatherController.getMyWeather);
+router.get("/my-weather", requireAuth, requireRole(["farmer"]), weatherController.getMyWeather);
 
 module.exports = router;

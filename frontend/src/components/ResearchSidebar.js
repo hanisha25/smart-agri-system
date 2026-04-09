@@ -1,41 +1,44 @@
 import React from "react";
 
-function ResearchSidebar({ setSection }) {
+const items = [
+  { key: "overview", label: "Overview", icon: "📌" },
+  { key: "map", label: "Field Map", icon: "🗺" },
+  { key: "research", label: "All Reports", icon: "📊" },
+  { key: "notifications", label: "Notifications", icon: "🔔" },
+];
+
+function ResearchSidebar({ section, setSection }) {
 
 return(
 
-<div className="w-60 bg-green-800 text-white p-5 min-h-screen">
+<aside className="sidebar-shell h-full w-full">
 
-<h2 className="text-xl font-bold mb-6">
+<div className="sidebar-scroll p-4">
+
+<h2 className="px-2 pb-3 text-lg font-bold text-green-900">
 Research Panel
 </h2>
 
-<ul className="space-y-4">
-
-<li
-onClick={()=>setSection("research")}
-className="cursor-pointer hover:text-yellow-300"
->
-📊 All Reports
-</li>
-
-<li
-onClick={()=>setSection("images")}
-className="cursor-pointer hover:text-yellow-300"
->
-📷 Crop Images
-</li>
-
-<li
-onClick={()=>setSection("analytics")}
-className="cursor-pointer hover:text-yellow-300"
->
-📈 Analytics
-</li>
-
-</ul>
+<div className="grid gap-2">
+{items.map((item)=>(
+  <button
+    key={item.key}
+    onClick={()=>setSection(item.key)}
+    className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left text-sm font-medium transition ${
+      section === item.key
+        ? "bg-green-700 text-white shadow-lg"
+        : "bg-slate-50 text-slate-700 hover:bg-green-50 hover:text-green-800"
+    }`}
+  >
+    <span>{item.icon}</span>
+    <span>{item.label}</span>
+  </button>
+))}
+</div>
 
 </div>
+
+</aside>
 
 );
 

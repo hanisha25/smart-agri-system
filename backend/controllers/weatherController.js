@@ -43,6 +43,7 @@ const districtLatLonMap = {
 function getAISuggestion(temp, humidity, rain) {
 
   return new Promise((resolve, reject) => {
+    let settled = false;
 
     const python = spawn("python3", [
       "../ml-model/predict.py",
@@ -52,12 +53,25 @@ function getAISuggestion(temp, humidity, rain) {
     ]);
 
     python.stdout.on("data", (data) => {
-      resolve(data.toString());
+      if (!settled) {
+        settled = true;
+        resolve(data.toString());
+      }
     });
 
     python.stderr.on("data", (err) => {
       console.log("ML Error:", err.toString());
-      reject("No suggestion");
+      if (!settled) {
+        settled = true;
+        reject("No suggestion");
+      }
+    });
+
+    python.on("close", (code) => {
+      if (code !== 0 && !settled) {
+        settled = true;
+        reject("No suggestion");
+      }
     });
 
   });
@@ -85,7 +99,17 @@ exports.getMyWeather = async (req, res) => {
         const districtKey = field.district?.trim().toLowerCase();
         const coords = districtLatLonMap[districtKey];
 
-        if (!coords) continue;
+        if (!coords) {
+          weatherData.push({
+            crop: field.cropName,
+            district: field.district,
+            temp: "--",
+            humidity: "--",
+            rain: 0,
+            suggestion: "District not supported for weather lookup"
+          });
+          continue;
+        }
 
         const response = await axios.get(
           `https://api.openweathermap.org/data/2.5/weather?lat=${coords.lat}&lon=${coords.lon}&appid=${process.env.WEATHER_API_KEY}&units=metric`

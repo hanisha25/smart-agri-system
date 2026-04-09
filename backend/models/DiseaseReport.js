@@ -25,11 +25,41 @@ type:String,
 default:""
 },
 
+probableDisease:{
+type:String,
+default:""
+},
+
+severity:{
+type:String,
+enum:["Low","Medium","High"],
+default:"Low"
+},
+
+confidenceScore:{
+type:Number,
+default:0
+},
+
+triageNotes:{
+type:String,
+default:""
+},
+
+recommendedAction:{
+type:String,
+default:""
+},
+
+reviewedAt: Date,
+
+resolvedAt: Date,
+
 createdAt:{
 type:Date,
 default:Date.now
 }
 
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model("DiseaseReport",diseaseReportSchema);

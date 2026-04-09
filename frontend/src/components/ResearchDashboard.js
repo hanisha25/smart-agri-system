@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { apiUrl, assetUrl } from "../api";
 
 function ResearchDashboard(){
 const [reports,setReports] = useState([]);
 const [responses,setResponses] = useState({});
 const [statusUpdates,setStatusUpdates] = useState({});
+const [recommendations,setRecommendations] = useState({});
 const [loading, setLoading] = useState(true);
 const [error, setError] = useState("");
 
@@ -14,7 +16,7 @@ const fetchReports = async ()=>{
   try{
     const token = localStorage.getItem("token");
     const res = await axios.get(
-      "http://localhost:5400/api/disease/all-reports",
+      apiUrl("/api/disease/all-reports"),
       {
         headers:{ Authorization:`Bearer ${token}` }
       }
@@ -45,20 +47,28 @@ const handleStatusChange = (id,value)=>{
   });
 };
 
+const handleRecommendationChange = (id, value) => {
+  setRecommendations({
+    ...recommendations,
+    [id]: value
+  });
+};
+
 const sendUpdate = async(id)=>{
   try{
     const token = localStorage.getItem("token");
     await axios.put(
-      `http://localhost:5400/api/disease/update/${id}`,
+      apiUrl(`/api/disease/update/${id}`),
       {
         response: responses[id] || "",
-        status: statusUpdates[id] || "Reviewed"
+        status: statusUpdates[id] || "Reviewed",
+        recommendation: recommendations[id]
       },
       {
         headers: { Authorization: `Bearer ${token}` }
       }
     );
-    alert("Response/status updated");
+    alert("Response updated");
     fetchReports();
   }catch(err){
     alert("Failed to update");
@@ -66,52 +76,78 @@ const sendUpdate = async(id)=>{
 };
 
 return(
-<div className="p-10">
-  <h2 className="text-2xl font-bold mb-6">
-    🧑‍🔬 Research Center Dashboard
-  </h2>
+<div className="section-shell">
+  <div className="section-hero">
+    <div>
+      <h2 className="section-title">
+        🧑‍🔬 Research Center Dashboard
+      </h2>
+      <p className="section-copy">
+        Review all incoming field reports, write recommendations, and update case status from one workspace.
+      </p>
+    </div>
+    <div className="stat-card">
+      <p className="text-sm text-slate-500">Open queue</p>
+      <p className="mt-3 text-3xl font-bold text-green-900">{reports.length}</p>
+      <p className="mt-2 text-sm text-slate-600">Use this board to move reports from pending review to resolved guidance.</p>
+    </div>
+  </div>
   {loading ? (
-    <div className="text-center text-lg py-10">Loading reports...</div>
+    <div className="empty-panel">Loading reports...</div>
   ) : error ? (
-    <div className="text-center text-red-600 py-10">{error}</div>
+    <div className="empty-panel text-red-600">{error}</div>
   ) : reports.length === 0 ? (
-    <div className="text-center text-gray-500 py-10">No reports found.</div>
+    <div className="empty-panel">No reports found.</div>
   ) : (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="content-grid">
       {reports.map((report)=>(
         <div
           key={report._id}
-          className="bg-white shadow-xl rounded-2xl p-8 border border-green-200 flex flex-col gap-2"
+          className="panel-card flex flex-col gap-3 p-6"
         >
           <div className="flex items-center gap-3 mb-2">
             <span className="text-2xl">🌱</span>
             <span className="font-bold text-lg">{report.crop}</span>
             <span className={`ml-auto px-3 py-1 rounded-full text-xs font-semibold ${report.status==="Pending"?"bg-yellow-200 text-yellow-800":"bg-green-200 text-green-800"}`}>{report.status}</span>
           </div>
-          <div className="grid grid-cols-2 gap-2 text-sm">
+          <div className="grid gap-2 text-sm sm:grid-cols-2">
             <div><b>Farmer:</b> {report.farmerId?.name}</div>
             <div><b>Location:</b> {report.location}</div>
             <div><b>Problem:</b> {report.problem}</div>
             <div><b>Symptom:</b> {report.symptomLocation}</div>
             <div><b>Spread:</b> {report.spread}</div>
             <div><b>Weather:</b> {report.weather}</div>
+            <div><b>AI Triage:</b> {report.probableDisease}</div>
+            <div><b>Severity:</b> {report.severity}</div>
+            <div><b>Confidence:</b> {Math.round((report.confidenceScore || 0) * 100)}%</div>
           </div>
+          {report.triageNotes && (
+            <div className="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              <b>Triage Notes:</b> {report.triageNotes}
+            </div>
+          )}
           {report.image && (
             <img
-              src={`http://localhost:5400/${report.image}`}
+              src={assetUrl(report.image)}
               alt="crop"
-              className="w-40 mt-4 rounded shadow border"
+              className="mt-4 h-40 w-full rounded-2xl border object-cover shadow sm:max-w-sm"
             />
           )}
           <textarea
+            placeholder="Refine the recommendation for the farmer"
+            className="mt-2 w-full rounded-2xl border border-slate-200 p-3 outline-none focus:border-green-500"
+            value={recommendations[report._id] ?? report.recommendedAction ?? ""}
+            onChange={(e)=>handleRecommendationChange(report._id,e.target.value)}
+          ></textarea>
+          <textarea
             placeholder="Write diagnosis / solution"
-            className="border p-2 mt-4 w-full rounded"
+            className="mt-4 w-full rounded-2xl border border-slate-200 p-3 outline-none focus:border-green-500"
             value={responses[report._id] || report.researchResponse || ""}
             onChange={(e)=>handleResponseChange(report._id,e.target.value)}
           ></textarea>
-          <div className="flex items-center gap-3 mt-2">
+          <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">
             <select
-              className="border rounded p-2"
+              className="rounded-2xl border border-slate-200 p-3"
               value={statusUpdates[report._id] || report.status}
               onChange={e=>handleStatusChange(report._id,e.target.value)}
             >
@@ -121,7 +157,7 @@ return(
             </select>
             <button
               onClick={()=>sendUpdate(report._id)}
-              className="bg-green-700 text-white px-4 py-2 rounded ml-auto"
+              className="rounded-full bg-green-700 px-5 py-3 text-white sm:ml-auto"
             >
               Save
             </button>

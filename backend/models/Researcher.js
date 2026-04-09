@@ -17,6 +17,7 @@ location:String,
 
 role:{
 type:String,
+enum:["researcher","admin"],
 default:"researcher"
 }
 

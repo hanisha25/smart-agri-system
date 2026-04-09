@@ -1,21 +1,18 @@
 import React from "react";
 
 const items = [
-  { key: "overview", label: "Overview", icon: "📌" },
-  { key: "weather", label: "Weather", icon: "🌦" },
+  { key: "overview", label: "System Overview", icon: "🛠" },
   { key: "map", label: "Field Map", icon: "🗺" },
-  { key: "crops", label: "My Crops", icon: "🌱" },
-  { key: "disease", label: "Disease", icon: "📸" },
-  { key: "reports", label: "Reports", icon: "📊" },
+  { key: "research", label: "All Reports", icon: "📊" },
   { key: "notifications", label: "Notifications", icon: "🔔" },
 ];
 
-export default function Sidebar({ section, setSection }) {
+export default function AdminSidebar({ section, setSection }) {
   return (
     <aside className="sidebar-shell h-full w-full">
       <div className="sidebar-scroll p-4">
-      <h3 className="px-2 pb-3 text-lg font-bold text-green-900">Farmer Panel</h3>
-      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
+      <h2 className="px-2 pb-3 text-lg font-bold text-green-900">Admin Panel</h2>
+      <div className="grid gap-2">
         {items.map((item) => (
           <button
             key={item.key}

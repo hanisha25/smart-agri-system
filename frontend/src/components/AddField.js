@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import axios from "axios";
+import { apiUrl } from "../api";
 
 function AddField({ onClose }) {
 
@@ -28,7 +29,7 @@ longitude: "",
     const token = localStorage.getItem("token");
 
     await axios.post(
-      "http://127.0.0.1:5400/api/field/add",
+      apiUrl("/api/field/add"),
       field,
       {
         headers:{
@@ -37,7 +38,7 @@ longitude: "",
       }
     );
 
-    alert("Field Added Successfully 🌾");
+    alert("Field added successfully");
     onClose();
 
   } catch(err){
@@ -48,16 +49,17 @@ longitude: "",
 };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-4 py-8" onClick={onClose}>
 
       <motion.div
         initial={{ scale:0.7, opacity:0 }}
         animate={{ scale:1, opacity:1 }}
         transition={{ duration:0.3 }}
-        className="bg-white/30 backdrop-blur-xl p-8 rounded-2xl shadow-2xl w-[500px]"
+        className="w-full max-w-2xl rounded-[28px] border border-white/60 bg-white p-6 shadow-2xl"
+        onClick={(event) => event.stopPropagation()}
       >
 
-        <h2 className="text-2xl font-bold text-center mb-6">🌾 Add New Field</h2>
+        <h2 className="mb-6 text-2xl font-bold text-center">🌾 Add New Field</h2>
 
         {/* Crop Section */}
         <h3 className="font-semibold mb-2">🌱 Crop Details</h3>
@@ -117,17 +119,17 @@ longitude: "",
           onChange={(e)=>setField({...field,area:e.target.value})}/>
 
         {/* Buttons */}
-        <div className="flex gap-4 mt-6">
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <button
             onClick={handleSubmit}
-            className="flex-1 bg-green-700 text-white py-2 rounded-lg"
+            className="flex-1 rounded-full bg-green-700 py-3 text-white"
           >
             Save Field
           </button>
 
           <button
             onClick={onClose}
-            className="flex-1 bg-red-500 text-white py-2 rounded-lg"
+            className="flex-1 rounded-full border border-slate-200 bg-white py-3 text-slate-700"
           >
             Cancel
           </button>

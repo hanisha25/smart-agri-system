@@ -14,7 +14,7 @@ password: String,
 
 role: {
 type: String,
-enum: ["farmer","researcher"],
+enum: ["farmer","researcher","admin"],
 default: "farmer"
 }
 

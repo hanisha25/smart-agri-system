@@ -2,17 +2,23 @@ const express = require("express");
 const router = express.Router();
 
 const diseaseController = require("../controllers/diseaseController");
-const { verifyToken } = require("../middleware/authMiddleware");
+const { requireAuth, requireRole } = require("../middleware/authMiddleware");
 const multer = require("multer");
 const upload = multer({ dest: "uploads/" });
 
 // Farmer sends report (with image upload support)
-router.post("/report", verifyToken, upload.single("image"), diseaseController.reportDisease);
+router.post(
+  "/report",
+  requireAuth,
+  requireRole(["farmer"]),
+  upload.single("image"),
+  diseaseController.reportDisease
+);
 
 // Researcher fetch all reports
-router.get("/all-reports", verifyToken, diseaseController.getAllReports);
+router.get("/all-reports", requireAuth, requireRole(["researcher"]), diseaseController.getAllReports);
 
 // Researcher updates report
-router.put("/update/:id", verifyToken, diseaseController.updateReport);
+router.put("/update/:id", requireAuth, requireRole(["researcher"]), diseaseController.updateReport);
 
 module.exports = router;
