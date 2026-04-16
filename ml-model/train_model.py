@@ -2,28 +2,21 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 import pickle
 
-# Example simple dataset
-data = {
-    "temperature":[20,25,30,35,40],
-    "humidity":[60,65,70,55,50],
-    "rainfall":[10,5,0,0,0],
-    "label":[
-        "Good conditions",
-        "Monitor crop",
-        "Irrigation recommended",
-        "High heat stress",
-        "Extreme heat risk"
-    ]
-}
+# Load dataset
+df = pd.read_csv("dataset.csv")
 
-df = pd.DataFrame(data)
-
-X = df[["temperature","humidity","rainfall"]]
+X = df[["temperature", "humidity", "rainfall"]]
 y = df["label"]
 
-model = RandomForestClassifier()
-model.fit(X,y)
+# 🔥 Stronger model
+model = RandomForestClassifier(
+    n_estimators=300,
+    max_depth=12,
+    random_state=42
+)
 
-pickle.dump(model,open("model.pkl","wb"))
+model.fit(X, y)
 
-print("Model trained and saved as model.pkl")
+pickle.dump(model, open("model.pkl", "wb"))
+
+print("✅ Model trained with realistic dataset")

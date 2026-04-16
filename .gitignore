@@ -5,5 +5,8 @@ __pycache__/
 backend/.env
 backend/node_modules/
 backend/uploads/
+ml-model/dataset.csv
+ml-model/model.pkl
+backend/.env
 
 ml-model/model.pkl

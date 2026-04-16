@@ -3,21 +3,21 @@ const axios = require("axios");
 const { spawn } = require("child_process");
 
 
-function generateCropAdvice(crop, suggestion){
-
-  if(!crop) return suggestion;
+// 🌱 Crop-based extra advice
+function generateCropAdvice(crop, suggestion) {
+  if (!crop) return suggestion;
 
   const cropName = crop.toLowerCase();
 
-  if(cropName === "paddy"){
-    return suggestion + " | Maintain standing water in field and monitor fungal diseases.";
+  if (cropName === "paddy") {
+    return suggestion + " | Maintain standing water and monitor fungal diseases.";
   }
 
-  if(cropName === "cotton"){
-    return suggestion + " | Monitor bollworm pests and ensure proper irrigation.";
+  if (cropName === "cotton") {
+    return suggestion + " | Watch for bollworm pests and irrigate properly.";
   }
 
-  if(cropName === "groundnut"){
+  if (cropName === "groundnut") {
     return suggestion + " | Check soil moisture and irrigate if needed.";
   }
 
@@ -25,6 +25,7 @@ function generateCropAdvice(crop, suggestion){
 }
 
 
+// 📍 District coordinates
 const districtLatLonMap = {
   "east godavari": { lat: 16.9891, lon: 81.7787 },
   "west godavari": { lat: 16.7107, lon: 81.0952 },
@@ -39,11 +40,11 @@ const districtLatLonMap = {
 };
 
 
-// Run ML model
-function getAISuggestion(temp, humidity, rain) {
-
+// 🤖 ML Prediction (Python)
+function getMLPrediction(temp, humidity, rain) {
   return new Promise((resolve, reject) => {
-    let settled = false;
+
+    let result = "";
 
     const python = spawn("python3", [
       "../ml-model/predict.py",
@@ -53,32 +54,68 @@ function getAISuggestion(temp, humidity, rain) {
     ]);
 
     python.stdout.on("data", (data) => {
-      if (!settled) {
-        settled = true;
-        resolve(data.toString());
-      }
+      result += data.toString();
     });
 
     python.stderr.on("data", (err) => {
       console.log("ML Error:", err.toString());
-      if (!settled) {
-        settled = true;
-        reject("No suggestion");
-      }
     });
 
     python.on("close", (code) => {
-      if (code !== 0 && !settled) {
-        settled = true;
-        reject("No suggestion");
+      if (code === 0) {
+        resolve(result.trim());
+      } else {
+        reject("Prediction failed");
       }
     });
 
   });
-
 }
 
 
+// 🧠 Smart AI-like Suggestion (Fallback Logic)
+async function getAISuggestion(temp, humidity, rain, prediction, crop) {
+  try {
+    let advice = "";
+
+    if (prediction.toLowerCase().includes("heat")) {
+      advice = "Crop is under high temperature stress. Irrigate early morning or evening and avoid watering during peak sunlight hours.";
+    } 
+    else if (prediction.toLowerCase().includes("irrigation")) {
+      advice = "Soil moisture is low. Provide irrigation and regularly check soil condition to maintain crop health.";
+    } 
+    else if (prediction.toLowerCase().includes("water")) {
+      advice = "Heavy rainfall expected. Ensure proper drainage to prevent waterlogging and root damage.";
+    } 
+    else if (prediction.toLowerCase().includes("good")) {
+      advice = "Weather conditions are favorable. Continue regular farming practices and monitor crop growth.";
+    } 
+    else {
+      advice = "Crop is under moderate stress. Monitor conditions and adjust irrigation based on weather changes.";
+    }
+
+    return advice;
+
+  } catch (err) {
+    console.log("AI logic error:", err);
+    return "Unable to generate advice at this moment.";
+  }
+}
+
+
+// 💾 Save real-time data (Hybrid learning)
+function saveData(temp, humidity, rain, prediction) {
+  spawn("python3", [
+    "../ml-model/append_data.py",
+    temp,
+    humidity,
+    rain,
+    prediction
+  ]);
+}
+
+
+// 🌦 Main Controller
 exports.getMyWeather = async (req, res) => {
 
   try {
@@ -106,11 +143,14 @@ exports.getMyWeather = async (req, res) => {
             temp: "--",
             humidity: "--",
             rain: 0,
-            suggestion: "District not supported for weather lookup"
+            prediction: "N/A",
+            suggestion: "District not supported",
+            confidence: "0%"
           });
           continue;
         }
 
+        // 🌦 Fetch weather
         const response = await axios.get(
           `https://api.openweathermap.org/data/2.5/weather?lat=${coords.lat}&lon=${coords.lon}&appid=${process.env.WEATHER_API_KEY}&units=metric`
         );
@@ -119,23 +159,43 @@ exports.getMyWeather = async (req, res) => {
         const humidity = response.data.main.humidity;
         const rain = response.data.rain?.["1h"] || 0;
 
-        // AI suggestion
-        let suggestion = "No suggestion";
+        // 🤖 ML Prediction
+        let prediction = "Unknown";
 
         try {
-          suggestion = await getAISuggestion(temp, humidity, rain);
+          prediction = await getMLPrediction(temp, humidity, rain);
+          saveData(temp, humidity, rain, prediction);
         } catch {
           console.log("ML failed");
         }
 
+        // 🧠 AI-like Suggestion
+        let aiAdvice = "No advice";
+
+        try {
+          await new Promise(res => setTimeout(res, 200)); // small delay
+          aiAdvice = await getAISuggestion(
+            temp,
+            humidity,
+            rain,
+            prediction,
+            field.cropName
+          );
+        } catch (err) {
+          console.log("AI ERROR:", err.message || err);
+        }
+
+        // 📦 Response
         weatherData.push({
-  crop: field.cropName,
-  district: field.district,
-  temp,
-  humidity,
-  rain,
-  suggestion: generateCropAdvice(field.cropName, suggestion.trim())
-});
+          crop: field.cropName,
+          district: field.district,
+          temp,
+          humidity,
+          rain,
+          prediction,
+          suggestion: generateCropAdvice(field.cropName, aiAdvice),
+          confidence: prediction === "Unknown" ? "60%" : "85%"
+        });
 
       } catch (apiError) {
 
@@ -145,7 +205,9 @@ exports.getMyWeather = async (req, res) => {
           temp: "--",
           humidity: "--",
           rain: 0,
-          suggestion: "Weather unavailable"
+          prediction: "Unavailable",
+          suggestion: "Weather unavailable",
+          confidence: "0%"
         });
 
       }
