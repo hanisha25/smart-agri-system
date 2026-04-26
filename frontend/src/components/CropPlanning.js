@@ -14,17 +14,107 @@ function Panel({ title, children }) {
 
 function Badge({ children, tone = "green" }) {
   const tones = {
-    green: "bg-green-100 text-green-800",
-    amber: "bg-amber-100 text-amber-800",
-    blue: "bg-sky-100 text-sky-800",
+    green:  "bg-green-100 text-green-800",
+    amber:  "bg-amber-100 text-amber-800",
+    blue:   "bg-sky-100 text-sky-800",
+    purple: "bg-purple-100 text-purple-800",
+    red:    "bg-red-100 text-red-700",
   };
-  return <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${tones[tone]}`}>{children}</span>;
+  return (
+    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${tones[tone] || tones.green}`}>
+      {children}
+    </span>
+  );
 }
 
+// ---- ML Recommendation Panel -----------------------------------------------
+function MLRecommendationPanel({ fieldId }) {
+  const [result, setResult]   = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState("");
+
+  const handleRequest = async () => {
+    setLoading(true);
+    setError("");
+    setResult(null);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.post(
+        apiUrl("/api/crop-planning/recommend"),
+        { fieldId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setResult(res.data);
+    } catch {
+      setError("Failed to get ML recommendation");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="mt-4 rounded-2xl border border-purple-200 bg-purple-50 p-4">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <p className="text-sm font-semibold text-purple-800">🤖 ML Crop Recommendation</p>
+        <button
+          onClick={handleRequest}
+          disabled={loading}
+          className="rounded-full bg-purple-700 px-4 py-1.5 text-xs font-semibold text-white hover:bg-purple-800 disabled:opacity-60 transition"
+        >
+          {loading ? "Analysing…" : result ? "Refresh" : "Get ML Recommendation"}
+        </button>
+      </div>
+
+      {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+
+      {result && (
+        <div className="mt-3 space-y-2 text-sm">
+          {result.mlRecommendation ? (
+            <>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge tone="purple">
+                  🌱 {result.mlRecommendation.recommended_crop.charAt(0).toUpperCase() +
+                      result.mlRecommendation.recommended_crop.slice(1)}
+                </Badge>
+                <Badge tone="green">
+                  {Math.round(result.mlRecommendation.confidence * 100)}% confidence
+                </Badge>
+              </div>
+              {result.mlRecommendation.top3?.length > 1 && (
+                <div>
+                  <p className="text-xs text-slate-500 mt-2 mb-1">Other candidates</p>
+                  <div className="flex flex-wrap gap-2">
+                    {result.mlRecommendation.top3.slice(1).map((item) => (
+                      <Badge key={item.crop} tone="blue">
+                        {item.crop} ({Math.round(item.confidence * 100)}%)
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-xs text-slate-500">
+              {result.mlSource === "missing_npk"
+                ? "⚠️ Add soil test data (N, P, K, pH) when registering the field to unlock ML recommendations."
+                : result.mlSource === "weather_unavailable"
+                ? "⚠️ Live weather data unavailable for this district."
+                : result.mlSource === "ml_unavailable"
+                ? "⚠️ ML service offline — rule-based results are shown above."
+                : "ML recommendation unavailable."}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---- Main Component --------------------------------------------------------
 export default function CropPlanning() {
-  const [data, setData] = useState(null);
+  const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError]     = useState("");
 
   useEffect(() => {
     const fetchPlanning = async () => {
@@ -34,7 +124,7 @@ export default function CropPlanning() {
           headers: { Authorization: `Bearer ${token}` },
         });
         setData(response.data);
-      } catch (err) {
+      } catch {
         setError("Failed to load crop planning data");
       } finally {
         setLoading(false);
@@ -45,8 +135,13 @@ export default function CropPlanning() {
   }, []);
 
   if (loading) return <div className="empty-panel">Loading crop planning...</div>;
-  if (error) return <div className="empty-panel text-red-600">{error}</div>;
-  if (!data?.fields?.length) return <div className="empty-panel">Add a field first to generate crop recommendations and rotation plans.</div>;
+  if (error)   return <div className="empty-panel text-red-600">{error}</div>;
+  if (!data?.fields?.length)
+    return (
+      <div className="empty-panel">
+        Add a field first to generate crop recommendations and rotation plans.
+      </div>
+    );
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="section-shell">
@@ -54,7 +149,9 @@ export default function CropPlanning() {
         <div>
           <h2 className="section-title">🧭 Crop Planning</h2>
           <p className="section-copy">
-            Crop recommendations are ranked from your soil, irrigation, season, and crop history. Rotation guidance avoids repeating the same crop and favors soil-restoring options.
+            Crop recommendations are ranked from your soil, irrigation, season, and crop history.
+            Provide soil test data (N, P, K, pH) when adding a field to unlock ML-powered suggestions.
+            Rotation guidance avoids repeating the same crop and favours soil-restoring options.
           </p>
         </div>
         <div className="stat-card">
@@ -76,12 +173,15 @@ export default function CropPlanning() {
                   </div>
                   <Badge tone="green">Current: {item.cropName || "--"}</Badge>
                 </div>
+
                 <div className="mt-4 space-y-3">
                   {item.recommendations.map((rec) => (
                     <div key={rec.crop} className="rounded-2xl bg-white px-4 py-3">
                       <div className="flex items-center justify-between gap-3">
                         <p className="font-semibold text-slate-900">{rec.crop}</p>
-                        <Badge tone={rec.score >= 70 ? "green" : rec.score >= 55 ? "amber" : "blue"}>{rec.score}/100</Badge>
+                        <Badge tone={rec.score >= 70 ? "green" : rec.score >= 55 ? "amber" : "blue"}>
+                          {rec.score}/100
+                        </Badge>
                       </div>
                       <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-600">
                         {rec.reasons.map((reason) => <li key={reason}>{reason}</li>)}
@@ -89,6 +189,8 @@ export default function CropPlanning() {
                     </div>
                   ))}
                 </div>
+
+                <MLRecommendationPanel fieldId={item.fieldId} />
               </div>
             ))}
           </div>

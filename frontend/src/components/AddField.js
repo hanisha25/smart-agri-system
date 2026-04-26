@@ -15,11 +15,15 @@ function AddField({ onClose }) {
     district: "",
     mandal: "",
     latitude: "",
-longitude: "",
+    longitude: "",
     village: "",
     soilType: "",
     irrigation: "",
-    area: ""
+    area: "",
+    nitrogen: "",
+    phosphorus: "",
+    potassium: "",
+    ph: "",
   });
 
   const handleSubmit = async () => {
@@ -117,6 +121,35 @@ longitude: "",
         <input placeholder="Area (Acres)"
           className="input"
           onChange={(e)=>setField({...field,area:e.target.value})}/>
+
+        {/* Soil Test Data */}
+        <h3 className="font-semibold mt-4 mb-2">🧪 Soil Test Data <span className="text-slate-400 font-normal text-sm">(optional — improves crop recommendations)</span></h3>
+
+        <input placeholder="Nitrogen content (kg/ha)"
+          type="number"
+          min="0"
+          className="input"
+          onChange={(e)=>setField({...field,nitrogen:e.target.value})}/>
+
+        <input placeholder="Phosphorus content (kg/ha)"
+          type="number"
+          min="0"
+          className="input"
+          onChange={(e)=>setField({...field,phosphorus:e.target.value})}/>
+
+        <input placeholder="Potassium content (kg/ha)"
+          type="number"
+          min="0"
+          className="input"
+          onChange={(e)=>setField({...field,potassium:e.target.value})}/>
+
+        <input placeholder="Soil pH (0–14)"
+          type="number"
+          min="0"
+          max="14"
+          step="0.1"
+          className="input"
+          onChange={(e)=>setField({...field,ph:e.target.value})}/>
 
         {/* Buttons */}
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">

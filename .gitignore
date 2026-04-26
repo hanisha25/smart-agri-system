@@ -7,6 +7,5 @@ backend/node_modules/
 backend/uploads/
 ml-model/dataset.csv
 ml-model/model.pkl
-backend/.env
-
-ml-model/model.pkl
+ml-model/crop_recommendation/crop_model.pkl
+ml-model/crop_recommendation/label_encoder.pkl

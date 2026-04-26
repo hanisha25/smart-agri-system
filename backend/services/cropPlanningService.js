@@ -1,18 +1,22 @@
 const soilRuleMap = {
-  "clay": ["paddy", "sugarcane"],
-  "loam": ["paddy", "groundnut", "cotton", "maize", "vegetables"],
+  "clay": ["paddy", "sugarcane", "jute"],
+  "loam": ["paddy", "groundnut", "cotton", "maize", "vegetables", "chickpea", "lentil", "coffee"],
   "sandy": ["groundnut", "millets", "watermelon", "cowpea"],
-  "black": ["cotton", "chilli", "pigeon pea", "sunflower"],
-  "red": ["groundnut", "millets", "cotton", "maize"],
+  "black": ["cotton", "chilli", "pigeonpea", "sunflower", "maize"],
+  "red": ["groundnut", "millets", "cotton", "maize", "chickpea"],
+  "alluvial": ["paddy", "sugarcane", "jute", "maize", "vegetables"],
+  "laterite": ["coffee", "coconut", "millets"],
 };
 
 const cropProfiles = {
   paddy: {
     label: "Paddy",
-    preferredSoils: ["clay", "loam"],
+    preferredSoils: ["clay", "loam", "alluvial"],
     waterNeed: "high",
     rotationAvoid: ["paddy"],
     rotationPreferred: ["pulses", "groundnut", "millets"],
+    npk: { nMin: 60, nMax: 120, pMin: 30, pMax: 60, kMin: 30, kMax: 60 },
+    phRange: { min: 5.5, max: 6.5 },
   },
   cotton: {
     label: "Cotton",
@@ -20,6 +24,8 @@ const cropProfiles = {
     waterNeed: "medium",
     rotationAvoid: ["cotton", "chilli"],
     rotationPreferred: ["pulses", "groundnut", "maize"],
+    npk: { nMin: 80, nMax: 160, pMin: 40, pMax: 80, kMin: 40, kMax: 80 },
+    phRange: { min: 6.0, max: 7.5 },
   },
   groundnut: {
     label: "Groundnut",
@@ -27,20 +33,26 @@ const cropProfiles = {
     waterNeed: "medium",
     rotationAvoid: ["groundnut", "cotton"],
     rotationPreferred: ["paddy", "millets", "maize"],
+    npk: { nMin: 15, nMax: 40, pMin: 30, pMax: 60, kMin: 30, kMax: 60 },
+    phRange: { min: 6.0, max: 7.0 },
   },
   maize: {
     label: "Maize",
-    preferredSoils: ["loam", "red", "black"],
+    preferredSoils: ["loam", "red", "black", "alluvial"],
     waterNeed: "medium",
     rotationAvoid: ["maize"],
     rotationPreferred: ["pulses", "groundnut", "millets"],
+    npk: { nMin: 80, nMax: 140, pMin: 40, pMax: 70, kMin: 30, kMax: 60 },
+    phRange: { min: 5.8, max: 7.0 },
   },
   millets: {
     label: "Millets",
-    preferredSoils: ["sandy", "red", "black", "loam"],
+    preferredSoils: ["sandy", "red", "black", "loam", "laterite"],
     waterNeed: "low",
     rotationAvoid: ["millets"],
     rotationPreferred: ["pulses", "groundnut", "cotton"],
+    npk: { nMin: 40, nMax: 90, pMin: 20, pMax: 50, kMin: 20, kMax: 40 },
+    phRange: { min: 6.0, max: 7.5 },
   },
   pulses: {
     label: "Pulses",
@@ -48,20 +60,98 @@ const cropProfiles = {
     waterNeed: "low",
     rotationAvoid: ["pulses"],
     rotationPreferred: ["paddy", "maize", "cotton"],
+    npk: { nMin: 10, nMax: 30, pMin: 40, pMax: 80, kMin: 20, kMax: 40 },
+    phRange: { min: 6.0, max: 7.5 },
   },
   vegetables: {
     label: "Vegetables",
-    preferredSoils: ["loam", "red"],
+    preferredSoils: ["loam", "red", "alluvial"],
     waterNeed: "medium",
     rotationAvoid: ["vegetables"],
     rotationPreferred: ["pulses", "millets"],
+    npk: { nMin: 80, nMax: 150, pMin: 50, pMax: 100, kMin: 50, kMax: 100 },
+    phRange: { min: 6.0, max: 7.0 },
   },
   sugarcane: {
     label: "Sugarcane",
-    preferredSoils: ["clay", "loam"],
+    preferredSoils: ["clay", "loam", "alluvial"],
     waterNeed: "high",
     rotationAvoid: ["sugarcane"],
     rotationPreferred: ["pulses", "groundnut"],
+    npk: { nMin: 100, nMax: 180, pMin: 50, pMax: 90, kMin: 50, kMax: 100 },
+    phRange: { min: 6.0, max: 7.5 },
+  },
+  chilli: {
+    label: "Chilli",
+    preferredSoils: ["black", "loam", "red"],
+    waterNeed: "medium",
+    rotationAvoid: ["chilli", "cotton"],
+    rotationPreferred: ["pulses", "groundnut", "maize"],
+    npk: { nMin: 80, nMax: 140, pMin: 40, pMax: 80, kMin: 40, kMax: 80 },
+    phRange: { min: 6.0, max: 7.0 },
+  },
+  sunflower: {
+    label: "Sunflower",
+    preferredSoils: ["black", "loam", "red"],
+    waterNeed: "medium",
+    rotationAvoid: ["sunflower"],
+    rotationPreferred: ["pulses", "maize", "millets"],
+    npk: { nMin: 60, nMax: 120, pMin: 40, pMax: 80, kMin: 40, kMax: 80 },
+    phRange: { min: 6.0, max: 7.5 },
+  },
+  pigeonpea: {
+    label: "Pigeon Pea",
+    preferredSoils: ["black", "loam", "red"],
+    waterNeed: "low",
+    rotationAvoid: ["pigeonpea"],
+    rotationPreferred: ["paddy", "maize", "millets"],
+    npk: { nMin: 15, nMax: 40, pMin: 30, pMax: 60, kMin: 20, kMax: 40 },
+    phRange: { min: 6.0, max: 7.5 },
+  },
+  watermelon: {
+    label: "Watermelon",
+    preferredSoils: ["sandy", "loam"],
+    waterNeed: "medium",
+    rotationAvoid: ["watermelon"],
+    rotationPreferred: ["pulses", "millets"],
+    npk: { nMin: 50, nMax: 100, pMin: 40, pMax: 80, kMin: 60, kMax: 120 },
+    phRange: { min: 6.0, max: 7.0 },
+  },
+  cowpea: {
+    label: "Cowpea",
+    preferredSoils: ["sandy", "loam", "red"],
+    waterNeed: "low",
+    rotationAvoid: ["cowpea"],
+    rotationPreferred: ["paddy", "maize", "millets"],
+    npk: { nMin: 10, nMax: 30, pMin: 30, pMax: 60, kMin: 20, kMax: 40 },
+    phRange: { min: 6.0, max: 7.0 },
+  },
+  jute: {
+    label: "Jute",
+    preferredSoils: ["clay", "loam", "alluvial"],
+    waterNeed: "high",
+    rotationAvoid: ["jute"],
+    rotationPreferred: ["pulses", "paddy"],
+    npk: { nMin: 60, nMax: 120, pMin: 30, pMax: 60, kMin: 30, kMax: 60 },
+    phRange: { min: 6.0, max: 7.0 },
+  },
+  coffee: {
+    label: "Coffee",
+    preferredSoils: ["loam", "laterite"],
+    waterNeed: "medium",
+    rotationAvoid: ["coffee"],
+    rotationPreferred: ["pulses", "millets"],
+    npk: { nMin: 60, nMax: 120, pMin: 30, pMax: 60, kMin: 30, kMax: 60 },
+    phRange: { min: 5.5, max: 6.5 },
+  },
+  coconut: {
+    label: "Coconut",
+    preferredSoils: ["sandy", "loam", "laterite"],
+    waterNeed: "medium",
+    rotationAvoid: ["coconut"],
+    rotationPreferred: ["pulses", "vegetables"],
+    npk: { nMin: 50, nMax: 100, pMin: 30, pMax: 60, kMin: 80, kMax: 160 },
+    phRange: { min: 5.5, max: 7.5 },
   },
 };
 
@@ -109,6 +199,62 @@ function scoreCrop(field, cropKey, recentCropKey) {
 
   if (district && (district.includes("godavari") || district.includes("guntur") || district.includes("krishna"))) {
     if (["paddy", "cotton", "groundnut"].includes(cropKey)) score += 5;
+  }
+
+  // NPK scoring — only applied when values are present (graceful degradation)
+  const { npk, phRange } = profile;
+  const n = field.nitrogen;
+  const p = field.phosphorus;
+  const k = field.potassium;
+  const ph = field.ph;
+  let npkUsed = false;
+
+  if (typeof n === "number" && npk) {
+    if (n >= npk.nMin && n <= npk.nMax) {
+      score += 8;
+      notes.push(`Nitrogen level (${n}) suits ${profile.label}`);
+    } else {
+      score -= 8;
+    }
+    npkUsed = true;
+  }
+
+  if (typeof p === "number" && npk) {
+    if (p >= npk.pMin && p <= npk.pMax) {
+      score += 8;
+      notes.push(`Phosphorus level (${p}) suits ${profile.label}`);
+    } else {
+      score -= 8;
+    }
+    npkUsed = true;
+  }
+
+  if (typeof k === "number" && npk) {
+    if (k >= npk.kMin && k <= npk.kMax) {
+      score += 8;
+      notes.push(`Potassium level (${k}) suits ${profile.label}`);
+    } else {
+      score -= 8;
+    }
+    npkUsed = true;
+  }
+
+  if (typeof ph === "number" && phRange) {
+    if (ph >= phRange.min && ph <= phRange.max) {
+      score += 10;
+      notes.push(`Soil pH (${ph}) is ideal for ${profile.label}`);
+    } else if (ph < phRange.min) {
+      score -= 10;
+      notes.push(`pH too acidic for ${profile.label}`);
+    } else {
+      score -= 10;
+      notes.push(`pH too alkaline for ${profile.label}`);
+    }
+    npkUsed = true;
+  }
+
+  if (!npkUsed) {
+    notes.push("Add soil test data (N, P, K, pH) for a more precise score");
   }
 
   return {
