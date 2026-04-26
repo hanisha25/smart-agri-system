@@ -5,8 +5,25 @@ export function apiUrl(path) {
 }
 
 export function assetUrl(path) {
-  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return `${API_BASE_URL}${normalizedPath}`;
+  return `${API_BASE_URL}${path}`;
 }
 
 export { API_BASE_URL };
+
+// ML function
+export async function predictCrop(data) {
+  try {
+    const response = await fetch("http://127.0.0.1:5000/predict", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    return await response.json();
+  } catch (error) {
+    console.error("Prediction error:", error);
+    return null;
+  }
+}
