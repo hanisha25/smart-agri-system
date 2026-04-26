@@ -127,7 +127,7 @@ exports.recommend = async (req, res) => {
       rotationPlan,
     });
   } catch (error) {
-    console.log("Crop recommendation error:", error);
+    console.log("Crop recommendation error:", error.message);
     res.status(500).json({ message: "Failed to generate crop recommendation" });
   }
 };
