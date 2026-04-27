@@ -10,6 +10,7 @@ exports.signup = async (req, res) => {
     const { name, mobile, farmerId, email, password, role } = req.body;
 
     if (!password || !role || !name?.trim()) {
+      console.log("Signup 400: Missing basic fields", { name, password: !!password, role });
       return res.status(400).json({ message: "Name, password, and role are required" });
     }
 
@@ -17,25 +18,34 @@ exports.signup = async (req, res) => {
     let user;
     if (role === "farmer") {
       if (!farmerId?.trim() || !mobile?.trim()) {
+        console.log("Signup 400: Missing farmer fields", { farmerId, mobile });
         return res.status(400).json({ message: "Farmer ID and mobile are required" });
       }
 
       // Prevent duplicate farmerId
       const existing = await Farmer.findOne({ farmerId });
-      if (existing) return res.status(400).json({ message: "Farmer ID already exists" });
+      if (existing) {
+        console.log("Signup 400: Farmer ID exists", { farmerId });
+        return res.status(400).json({ message: "Farmer ID already exists" });
+      }
       user = new Farmer({ name, mobile, farmerId, password: hashedPassword, role });
       await user.save();
     } else if (role === "researcher") {
       if (!email?.trim()) {
+        console.log("Signup 400: Missing researcher email", { email });
         return res.status(400).json({ message: "Researcher email is required" });
       }
 
       // Prevent duplicate email
       const existing = await Researcher.findOne({ email });
-      if (existing) return res.status(400).json({ message: "Researcher email already exists" });
+      if (existing) {
+        console.log("Signup 400: Researcher email exists", { email });
+        return res.status(400).json({ message: "Researcher email already exists" });
+      }
       user = new Researcher({ name, email, password: hashedPassword });
       await user.save();
     } else {
+      console.log("Signup 400: Invalid role", { role });
       return res.status(400).json({ message: "Invalid role" });
     }
     res.json({ message: "Signup Successful" });
