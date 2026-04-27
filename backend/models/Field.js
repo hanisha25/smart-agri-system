@@ -22,7 +22,12 @@ longitude: String,
 
   soilType: String,
   irrigation: String,
-  area: String
+  area: String,
+
+  nitrogen: Number,
+  phosphorus: Number,
+  potassium: Number,
+  ph: Number
 
 }, { timestamps: true });
 
