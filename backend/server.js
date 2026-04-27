@@ -7,6 +7,7 @@ const authRoutes = require("./routes/authRoutes");
 const fieldRoutes = require("./routes/fieldRoutes");
 const weatherRoutes = require("./routes/weatherRoutes");
 const diseaseRoutes = require("./routes/diseaseRoutes");
+const cropPlanningRoutes = require("./routes/cropPlanningRoutes");
 const researchRoutes = require("./routes/researchRoutes");
 const farmerDiseaseReports = require("./routes/farmerDiseaseReports");
 const analyticsRoutes = require("./routes/analyticsRoutes");
@@ -15,7 +16,23 @@ const notificationRoutes = require("./routes/notificationRoutes");
 const app = express();
 const port = process.env.PORT || 5400;
 
-app.use(cors());
+const allowedOrigins = (process.env.CORS_ORIGIN || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
 app.use("/uploads",express.static("uploads"));
@@ -24,6 +41,7 @@ app.use("/api/auth",authRoutes);
 app.use("/api/field",fieldRoutes);
 app.use("/api/weather",weatherRoutes);
 app.use("/api/disease",diseaseRoutes);
+app.use("/api/crop-planning", cropPlanningRoutes);
 app.use("/api/research",researchRoutes);
 app.use("/api/farmer-reports", farmerDiseaseReports);
 app.use("/api/analytics", analyticsRoutes);
